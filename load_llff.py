@@ -62,6 +62,11 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, -2:].transpose([1, 0])
 
+    filter = [i for i in range(0,len(poses_arr),10)]
+    if "Test" in basedir:
+        poses = poses[...,filter]
+        bds = bds[...,filter]
+
     # img0 = [os.path.join(basedir, 'images', f) for f in sorted(os.listdir(os.path.join(basedir, 'images'))) \
     #         if f.endswith('JPG') or f.endswith('jpg') or f.endswith('png')][0]
     # sh = imageio.imread(img0).shape
@@ -82,6 +87,10 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
 
     imgfiles = [os.path.join(imgdir, f) for f in sorted(os.listdir(imgdir)) if
                 f.endswith('JPG') or f.endswith('jpg') or f.endswith('png')]
+    # select part of image
+    if "Test" in basedir:
+        imgfiles = [imgfiles[i] for i in filter]
+    
     if poses.shape[-1] != len(imgfiles):
         print('Mismatch between imgs {} and poses {} !!!!'.format(len(imgfiles), poses.shape[-1]))
         return
@@ -99,7 +108,7 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
         else:
             return imageio.imread(f)
 
-    imgs = imgs = [imread(f)[..., :3] / 255. for f in imgfiles]
+    imgs = [imread(f)[..., :3] / 255. for f in imgfiles]
     imgs = np.stack(imgs, -1)
 
     print('Loaded image data', imgs.shape, poses[:, -1, 0])
