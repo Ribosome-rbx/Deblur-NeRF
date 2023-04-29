@@ -230,6 +230,7 @@ def train():
                                                                   spherify=args.spherify,
                                                                   path_epi=args.render_epi)
         hwf = poses[0, :3, -1]
+        breakpoint()
         poses = poses[:, :3, :4]
         print('Loaded llff', images.shape, render_poses.shape, hwf, args.datadir)
         if not isinstance(i_test, list):
