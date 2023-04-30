@@ -395,6 +395,7 @@ def train():
 
             dummy_num = ((len(poses) - 1) // args.num_gpu + 1) * args.num_gpu - len(poses)
             dummy_poses = torch.eye(3, 4).unsqueeze(0).expand(dummy_num, 3, 4).type_as(render_poses)
+
             print(f"Append {dummy_num} # of poses to fill all the GPUs")
             nerf.eval()
             rgbshdr, disps = nerf(

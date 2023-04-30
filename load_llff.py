@@ -61,6 +61,7 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
     poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, -2:].transpose([1, 0])
+    
 
     filter = [i for i in range(0,90)]
     if "Test" in basedir:
@@ -316,5 +317,4 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
 
     images = images.astype(np.float32)
     poses = poses.astype(np.float32)
-
     return images, poses, bds, render_poses, i_test
