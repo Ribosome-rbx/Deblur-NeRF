@@ -3,17 +3,19 @@
 ## Euler commands
 * Load module`module load gcc/8.2.0 cuda/11.6.2 python/3.8.5 cudnn/8.0.5 cmake/3.19.8 eth_proxy`
 
+* upload file on to server: `scp -r /path/filename borong@euler.ethz.ch:/path`
+
 * If using virtual environment: `source ../env-3dvision/bin/activate`
 
 * Running `sbatch --time=4:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="[...cmd...]"`
 
 * Check details of the job `myjobs -j job_id`
-
+* Check queue: `watch -n 0 squeue`
 * Change access `chmod -R u+rwx,g+rwx,o+rx ./`
 
-> Training `sbatch --time=8:00:00 --gpus=1 --gres=gpumem:24g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/100v_107_depth_609.txt > ./logs/training_log"`
+> Training `sbatch --time=8:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=20g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4"`
 
-> Only Render `sbatch --time=1:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/150v_90_15_2325.txt --render_only > ./logs/rendering_log"`
+> Only Render `sbatch --time=1:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4 --render_only --render_factor 4"`
 
 
 
