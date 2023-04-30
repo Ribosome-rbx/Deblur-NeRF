@@ -62,7 +62,7 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, -2:].transpose([1, 0])
 
-    filter = [i for i in range(0,len(poses_arr),10)]
+    filter = [i for i in range(0,90)]
     if "Test" in basedir:
         poses = poses[...,filter]
         bds = bds[...,filter]

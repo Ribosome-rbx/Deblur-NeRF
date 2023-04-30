@@ -230,7 +230,6 @@ def train():
                                                                   spherify=args.spherify,
                                                                   path_epi=args.render_epi)
         hwf = poses[0, :3, -1]
-        breakpoint()
         poses = poses[:, :3, :4]
         print('Loaded llff', images.shape, render_poses.shape, hwf, args.datadir)
         if not isinstance(i_test, list):
@@ -247,7 +246,6 @@ def train():
         if args.no_ndc:
             near = np.min(bds) * 0.9
             far = np.max(bds) * 1.0
-
         else:
             near = 0.
             far = 1.
