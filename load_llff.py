@@ -87,7 +87,7 @@ def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True, fi
     imgfiles = [os.path.join(imgdir, f) for f in sorted(os.listdir(imgdir)) if
                 f.endswith('JPG') or f.endswith('jpg') or f.endswith('png')]
     # select part of image
-    if "Test" in basedir:
+    if filter is not None:
         imgfiles = [imgfiles[i] for i in filter]
     
     if poses.shape[-1] != len(imgfiles):

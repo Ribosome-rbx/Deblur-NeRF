@@ -225,7 +225,7 @@ def train():
     # Load data
     K = None
     if args.dataset_type == 'room':
-        filter = [i for i in range(0,90)]
+        filter = [i for i in range(0,60)]
         poses, bds, imgs = _load_data(args.datadir, factor=args.factor, filter=filter)  # factor=8 downsamples original imgs by 8x
         
         poses = np.moveaxis(poses, -1, 0).astype(np.float32)
