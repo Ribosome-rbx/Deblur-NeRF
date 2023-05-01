@@ -43,3 +43,4 @@ tone_mapping_type = gamma
 
 render_rmnearplane = 10
 no_ndc = True
+i_video = 200000
