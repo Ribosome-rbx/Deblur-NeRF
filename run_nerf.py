@@ -6,7 +6,7 @@ import imageio
 from tensorboardX import SummaryWriter
 
 from NeRF import *
-from load_llff import load_llff_data
+from load_llff import load_llff_data, _load_data
 from run_nerf_helpers import *
 from metrics import compute_img_metric
 
@@ -224,9 +224,36 @@ def train():
 
     # Load data
     K = None
-    if args.dataset_type == 'llff':
+    if args.dataset_type == 'room':
+        filter = [i for i in range(0,90)]
+        poses, bds, imgs = _load_data(args.datadir, factor=args.factor, filter=filter)  # factor=8 downsamples original imgs by 8x
+        
+        poses = np.moveaxis(poses, -1, 0).astype(np.float32)
+        images = np.moveaxis(imgs, -1, 0).astype(np.float32)
+        bds = np.moveaxis(bds, -1, 0).astype(np.float32)
+        
+        hwf = poses[0, :3, -1]
+        poses = poses[:, :3, :4]
+        render_poses = poses
+        print('Loaded room', images.shape, render_poses.shape, hwf, args.datadir)
+
+        print('Room holdout,', args.llffhold)
+        i_test = np.arange(images.shape[0])[::args.llffhold]
+
+        i_val = i_test
+        i_train = np.array([i for i in np.arange(int(images.shape[0])) if
+                            (i not in i_test and i not in i_val)])
+
+        if args.no_ndc:
+            near = np.ndarray.min(bds) * .9
+            far = np.ndarray.max(bds) * 1.
+        else:
+            near = 0.
+            far = 1.
+
+    elif args.dataset_type == 'llff':
         images, poses, bds, render_poses, i_test = load_llff_data(args, args.datadir, args.factor,
-                                                                  recenter=True, bd_factor=.75,
+                                                                  recenter=False, bd_factor=.75,
                                                                   spherify=args.spherify,
                                                                   path_epi=args.render_epi)
         hwf = poses[0, :3, -1]

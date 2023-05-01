@@ -57,14 +57,12 @@ def _minify(basedir, factors=[], resolutions=[]):
         print('Done')
 
 
-def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True):
+def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True, filter = None):
     poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, -2:].transpose([1, 0])
     
-
-    filter = [i for i in range(0,90)]
-    if "Test" in basedir:
+    if filter is not None:
         poses = poses[...,filter]
         bds = bds[...,filter]
 
@@ -253,16 +251,16 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1)
+    # poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1)
     poses = np.moveaxis(poses, -1, 0).astype(np.float32)
     imgs = np.moveaxis(imgs, -1, 0).astype(np.float32)
     images = imgs
     bds = np.moveaxis(bds, -1, 0).astype(np.float32)
 
-    # Rescale if bd_factor is provided
-    sc = 1. if bd_factor is None else 1. / (bds.min() * bd_factor)
-    poses[:, :3, 3] *= sc
-    bds *= sc
+    # # Rescale if bd_factor is provided
+    # sc = 1. if bd_factor is None else 1. / (bds.min() * bd_factor)
+    # poses[:, :3, 3] *= sc
+    # bds *= sc
 
     if recenter:
         poses = recenter_poses(poses)
@@ -304,7 +302,7 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
             #             zloc = np.percentile(tt, 10, 0)[2]
             rads[0] = rads[0] / 2
             render_poses = render_path_epi(c2w_path, up, rads[0], N_views)
-
+            
     render_poses = np.array(render_poses).astype(np.float32)
 
     c2w = poses_avg(poses)

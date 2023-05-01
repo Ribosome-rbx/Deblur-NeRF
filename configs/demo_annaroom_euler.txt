@@ -1,18 +1,19 @@
 num_gpu = 1
 expname = annaroom
-basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs
 datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset
 tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/annaroom/logs
-dataset_type = llff
+dataset_type = room
 # factor = 4
 llffhold = 7
 
-N_rand = 256
+N_rand = 128
 N_samples = 32
 N_importance = 32
 N_iters = 200000
 lrate = 5e-4
 lrate_decay = 250
+datadownsample = 4
 
 use_viewdirs = True
 raw_noise_std = 1e0
@@ -42,4 +43,3 @@ tone_mapping_type = gamma
 
 render_rmnearplane = 10
 no_ndc = True
-render_test = True
