@@ -7,5 +7,5 @@
 *.dae
 data/*
 logs/*
-otuputs/*
+outputs/*
 deblurnerf_dataset/
