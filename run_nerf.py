@@ -648,7 +648,7 @@ def train():
                 # evaluation
                 rgbs = rgbs[i_test]
                 target_rgb_ldr = imagesf[i_test]
-                breakpoint()
+ 
                 test_mse = compute_img_metric(rgbs, target_rgb_ldr, 'mse')
                 test_psnr = compute_img_metric(rgbs, target_rgb_ldr, 'psnr')
                 test_ssim = compute_img_metric(rgbs, target_rgb_ldr, 'ssim')
