@@ -637,11 +637,18 @@ def train():
                     rgb8 = to8b(rgb.cpu().numpy())
                     filename = os.path.join(testsavedir, f'{rgb_idx:03d}.png')
                     imageio.imwrite(filename, rgb8)
+                
+                ##### debug #####
+                # rgbs = []
+                # for rgb_idx in range(60):
+                #     filename = os.path.join(testsavedir, f'{rgb_idx:03d}.png')
+                #     rgbs.append(imageio.imread(filename))
+                # rgbs = torch.tensor(np.array(rgbs))
 
                 # evaluation
                 rgbs = rgbs[i_test]
                 target_rgb_ldr = imagesf[i_test]
-
+                breakpoint()
                 test_mse = compute_img_metric(rgbs, target_rgb_ldr, 'mse')
                 test_psnr = compute_img_metric(rgbs, target_rgb_ldr, 'psnr')
                 test_ssim = compute_img_metric(rgbs, target_rgb_ldr, 'ssim')

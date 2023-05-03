@@ -1,8 +1,8 @@
 num_gpu = 1
 expname = blurball_full
-basedir = E:\3DVision\Deblur-NeRF
+basedir = E:\3DVision\Deblur-NeRF\outputs
 datadir = E:\3DVision\Deblur-NeRF\deblurnerf_dataset\real_camera_motion_blur\blurball
-tbdir = /logs/tensorboard
+tbdir = E:\3DVision\Deblur-NeRF\outputs\blurball_full\logs
 dataset_type = llff
 factor = 4
 llffhold = 7
@@ -41,3 +41,4 @@ kernel_spatialvariant_trans
 tone_mapping_type = gamma
 
 render_rmnearplane = 10
+i_video = 200000
