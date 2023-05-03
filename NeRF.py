@@ -69,7 +69,7 @@ class DSKnet(nn.Module):
                                     nn.Parameter(torch.zeros(pattern_num, num_pt, 2)
                                                  .type(torch.float32), True))
 
-        if in_embed > 0:
+        if in_embed > 0: # fn: function; cnl: channel
             self.in_embed_fn, self.in_embed_cnl = get_embedder(in_embed, input_dim=2)
         else:
             self.in_embed_fn, self.in_embed_cnl = None, 0
@@ -111,29 +111,45 @@ class DSKnet(nn.Module):
 
     def forward(self, H, W, K, rays, rays_info):
         """
+        with batch size of 128
+        rays: shape [128, 3, 2]
+        rays_info: dict with keys ['rays_x', 'rays_y', 'rgbsf', 'images_idx']
+                    'rays_x' shape [128, 1]
+                    'rays_y' shape [128, 1]
+                    'rgbsf' shape [128, 3]
+                    'images_idx' shape [128, 1]
+
         inputs: all input has shape (ray_num, cnl)
         outputs: output shape (ray_num, ptnum, 3, 2)  last two dim: [ray_o, ray_d]
         """
+        # find the image embedding for each ray, each embedding has length 32
         img_idx = rays_info['images_idx'].squeeze(-1)
         img_embed = self.img_embed[img_idx] if self.img_embed is not None else \
             torch.tensor([]).reshape(len(img_idx), self.img_embed_cnl)
-
+        # img_embed has shape [128, 32]
+        breakpoint()
+        
+        # q is fixed for each img, here we find q of each ray, with shape [128, 5, 2], #num_ray #N #uv
         pt_pos = self.pattern_pos.expand(len(img_idx), -1, -1) if self.isglobal \
             else self.pattern_pos[img_idx]
         pt_pos = torch.tanh(pt_pos) * self.kernel_hwindow
 
+        # add small perturb to the pattern pose, pt_pos has shape [128, 5, 2]
         if self.random_hwindow > 0 and self.random_mode == "input":
             random_pos = torch.randn_like(pt_pos) * self.random_hwindow
             pt_pos = pt_pos + random_pos
 
+        # apply embedding to the pattern pose, output a 10 vector for each pose, shape [128, 5, 10]
         input_pos = pt_pos  # the first point is the reference point
         if self.in_embed_fn is not None:
             pt_pos = pt_pos * (np.pi / self.kernel_hwindow)
-            pt_pos = self.in_embed_fn(pt_pos)
+            pt_pos = self.in_embed_fn(pt_pos)     
 
+        # expand img_embed form [128,32] into [128,5,32], then get x, with shape [128,5,42]
         img_embed_expand = img_embed[:, None].expand(len(img_embed), self.num_pt, self.img_embed_cnl)
         x = torch.cat([pt_pos, img_embed_expand], dim=-1)
-
+        
+        # apply embedding to the rays spatial, then get x, with shape [128,5,52]
         rays_x, rays_y = rays_info['rays_x'], rays_info['rays_y']
         if self.spatial_embed_fn is not None:
             spatialx = rays_x / (W / 2 / np.pi) - np.pi
@@ -143,17 +159,19 @@ class DSKnet(nn.Module):
             spatial = spatial[:, None].expand(len(img_idx), self.num_pt, self.spatial_embed_cnl)
             x = torch.cat([x, spatial], dim=-1)
 
+        # apply embedding to the rays spatial, then get x, with shape [128,5,52]
         if self.depth_embed_fn is not None:
             depth = rays_info['ray_depth']
             depth = depth * np.pi  # TODO: please always check that the depth lies between [0, 1)
             depth = self.depth_embed_fn(depth)
             depth = depth[:, None].expand(len(img_idx), self.num_pt, self.depth_embed_cnl)
             x = torch.cat([x, depth], dim=-1)
-
+        breakpoint()
         # forward
-        x1 = self.linears(x)
-        x1 = torch.cat([x, x1], dim=-1) if self.short_cut else x1
-        x1 = self.linears1(x1)
+        x1 = self.linears(x) # from [128, 5, 52] to [128, 5, 64]
+        # short_cut is True, from [128, 5, 64] to [128, 5, 116]
+        x1 = torch.cat([x, x1], dim=-1) if self.short_cut else x1 
+        x1 = self.linears1(x1) # from [128, 5, 64] to [128, 5, 5]
 
         delta_trans = None
         if self.optim_sv_trans:
@@ -168,6 +186,7 @@ class DSKnet(nn.Module):
         if delta_trans is None:
             delta_trans = torch.zeros_like(delta_pos)
 
+        # shift pattern pos, and rescale weight using softmax
         delta_trans = delta_trans * 0.01
         new_rays_xy = delta_pos + input_pos
         weight = torch.softmax(weight[..., 0], dim=-1)
@@ -182,7 +201,7 @@ class DSKnet(nn.Module):
         dirs = torch.stack([rays_x - delta_trans[..., 0],
                             rays_y - delta_trans[..., 1],
                             -torch.ones_like(rays_x)], -1)
-
+        # rays_x/y has shape [128,5]; dirs has shape [128,5,3]
         # Rotate ray directions from camera frame to the world frame
         rays_d = torch.sum(dirs[..., None, :] * poses[..., None, :3, :3],
                            -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
