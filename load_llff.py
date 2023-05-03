@@ -247,20 +247,21 @@ def spherify_poses(poses, bds):
 
 
 def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spherify=False, path_epi=False):
-    poses, bds, imgs = _load_data(basedir, factor=factor)  # factor=8 downsamples original imgs by 8x
+    filter = [i for i in range(0,60)]
+    poses, bds, imgs = _load_data(basedir, factor=factor, filter= filter)  # factor=8 downsamples original imgs by 8x
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    # poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1)
+    poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:, :]], 1)
     poses = np.moveaxis(poses, -1, 0).astype(np.float32)
     imgs = np.moveaxis(imgs, -1, 0).astype(np.float32)
     images = imgs
     bds = np.moveaxis(bds, -1, 0).astype(np.float32)
 
-    # # Rescale if bd_factor is provided
-    # sc = 1. if bd_factor is None else 1. / (bds.min() * bd_factor)
-    # poses[:, :3, 3] *= sc
-    # bds *= sc
+    # Rescale if bd_factor is provided
+    sc = 1. if bd_factor is None else 1. / (bds.min() * bd_factor)
+    poses[:, :3, 3] *= sc
+    bds *= sc
 
     if recenter:
         poses = recenter_poses(poses)
