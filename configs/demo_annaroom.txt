@@ -3,7 +3,7 @@ expname = annaroom
 basedir = E:\3DVision\Deblur-NeRF\outputs
 datadir = F:\deblur\AnnaTest\
 tbdir = E:\3DVision\Deblur-NeRF\outputs\annaroom\logs
-dataset_type = room
+dataset_type = llff
 # factor = 4
 llffhold = 7
 

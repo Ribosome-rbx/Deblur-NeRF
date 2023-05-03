@@ -127,7 +127,6 @@ class DSKnet(nn.Module):
         img_embed = self.img_embed[img_idx] if self.img_embed is not None else \
             torch.tensor([]).reshape(len(img_idx), self.img_embed_cnl)
         # img_embed has shape [128, 32]
-        breakpoint()
         
         # q is fixed for each img, here we find q of each ray, with shape [128, 5, 2], #num_ray #N #uv
         pt_pos = self.pattern_pos.expand(len(img_idx), -1, -1) if self.isglobal \
@@ -166,7 +165,7 @@ class DSKnet(nn.Module):
             depth = self.depth_embed_fn(depth)
             depth = depth[:, None].expand(len(img_idx), self.num_pt, self.depth_embed_cnl)
             x = torch.cat([x, depth], dim=-1)
-        breakpoint()
+
         # forward
         x1 = self.linears(x) # from [128, 5, 52] to [128, 5, 64]
         # short_cut is True, from [128, 5, 64] to [128, 5, 116]
