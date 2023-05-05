@@ -21,6 +21,10 @@
 
 
 ## Current Work
+| Exp Setting | Folder  | Results |
+|-------------|---------|---------|
+| Switch R  |  Deblur-NeRF/outputs/annaroom   |   \    |
+| Switch R & t | \ |    \    |
 
 
 ## Plan
