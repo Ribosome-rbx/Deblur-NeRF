@@ -7,7 +7,7 @@
 
 * If using virtual environment: `source ../env-3dvision/bin/activate`
 
-* Running `sbatch --time=4:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="[...cmd...]"`
+* Debug with Euler `srun --gpus=1 --pty bash`
 
 * Check details of the job `myjobs -j job_id`
 * Check queue: `watch -n 0 squeue`
