@@ -21,10 +21,19 @@
 
 
 ## Current Work
-| Exp Setting | Folder  | Results |
-|-------------|---------|---------|
-| Switch R  |  Deblur-NeRF/outputs/annaroom   |   \    |
-| Switch R & t | \ |    \    |
+### check the coordinates
+| Exp Setting | Folder  | Results | Deform |
+|-------------|---------|---------|---------|
+| Switch R  |  Deblur-NeRF/outputs/annaroom   |   15.11074443    | bad |
+| Switch R & t | Deblur-NeRF/outputs/annaroom_RT |    15.67735819    | good, need further test |
+| no bd rescale | Deblur-NeRF/outputs/annaroom_norescale |    15.44723453    | bad |
+| Switch Rt & no bd rescale | Deblur-NeRF/outputs/annaroom_Rt_noscale |    16.67161951    | good |
+
+### check deblur ability
+| Exp Setting | Folder  | Results | Deform |
+|-------------|---------|---------|---------|
+| base deblur  |  Deblur-NeRF/outputs/blur_annaroom_Rt_wScale   |    \    |  \ |
+| provide camera | Deblur-NeRF/outputs/blur_annaroom_Rt_wScale_camera |     \    |  \ |
 
 
 ## Plan

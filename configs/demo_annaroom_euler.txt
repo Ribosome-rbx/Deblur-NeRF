@@ -1,8 +1,8 @@
 num_gpu = 1
-expname = annaroom
+expname = annaroom_R_c2n
 basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs
 datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset
-tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs/annaroom/logs
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs/annaroom_R_c2n/logs
 dataset_type = llff
 # factor = 1
 llffhold = 7

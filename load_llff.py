@@ -252,8 +252,12 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
-    poses[:,3,:] = np.array([-poses[1,3,:],-poses[0,3,:],-poses[2,3,:]])
+    poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
+    # poses[:,3,:] = np.array([poses[0,3,:],-poses[1,3,:],-poses[2,3,:]])
+    # backup strange rotation ##################
+    # poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
+    # poses[:,3,:] = np.array([-poses[1,3,:],-poses[0,3,:],-poses[2,3,:]])
+    # backup strange rotation ##################
     
     poses = np.moveaxis(poses, -1, 0).astype(np.float32)
     imgs = np.moveaxis(imgs, -1, 0).astype(np.float32)
