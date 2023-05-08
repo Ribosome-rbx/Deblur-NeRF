@@ -7,7 +7,7 @@
 
 * If using virtual environment: `source ../env-3dvision/bin/activate`
 
-* Debug with Euler `srun --gpus=1 --pty bash`
+* Debug with Euler `srun --time=1:00:00 --gpus=1 --gres=gpumem:30g -n 4 --mem-per-cpu=8g --pty bash`
 
 * Check details of the job `myjobs -j job_id`
 * Check queue: `watch -n 0 squeue`

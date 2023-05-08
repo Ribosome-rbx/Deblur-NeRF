@@ -1,8 +1,8 @@
 num_gpu = 1
-expname = annaroom_2w
+expname = annaroom_debug05_nokernel
 basedir = E:\3DVision\Deblur-NeRF\outputs
 datadir = F:\deblur\AnnaTest\
-tbdir = E:\3DVision\Deblur-NeRF\outputs\annaroom_2w\logs
+tbdir = E:\3DVision\Deblur-NeRF\outputs\annaroom_debug05_nokernel\logs
 dataset_type = llff
 # factor = 4
 llffhold = 7
@@ -19,12 +19,12 @@ use_viewdirs = True
 raw_noise_std = 1e0
 rgb_activate = sigmoid
 
-kernel_start_iter = 1200
+kernel_start_iter = 6000
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
 
-kernel_type = deformablesparsekernel
+kernel_type = none
 kernel_ptnum = 5
 kernel_random_hwindow = 0.15
 kernel_random_mode = input
@@ -43,4 +43,6 @@ tone_mapping_type = gamma
 
 render_rmnearplane = 10
 no_ndc = True
+i_weight = 2000
+i_testset = 2000
 i_video = 200000
