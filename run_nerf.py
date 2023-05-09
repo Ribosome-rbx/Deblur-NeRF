@@ -6,7 +6,7 @@ import imageio
 from tensorboardX import SummaryWriter
 
 from NeRF import *
-from load_llff import load_llff_data, _load_data
+from load_llff import load_llff_data, _load_data, load_deblur_data, _load_deblur_data
 from run_nerf_helpers import *
 from metrics import compute_img_metric
 
@@ -110,6 +110,10 @@ def config_parser():
                         help='<input>, <output>')
     parser.add_argument("--kernel_spatial_embed", type=int, default=0,
                         help='the dim of spatial coordinate embedding')
+    parser.add_argument("--kernel_quater_embed", type=int, default=0,
+                        help='the dim of quaternion coordinate embedding')
+    parser.add_argument("--kernel_velocity_embed", type=int, default=0,
+                        help='the dim of velocity coordinate embedding')
     parser.add_argument("--kernel_depth_embed", type=int, default=0,
                         help='the dim of depth coordinate embedding')
     parser.add_argument("--kernel_hwindow", type=int, default=10,
@@ -224,32 +228,33 @@ def train():
 
     # Load data
     K = None
-    if args.dataset_type == 'room':
-        filter = [i for i in range(682,742)]
-        poses, bds, imgs = _load_data(args.datadir, factor=args.factor, filter=filter)  # factor=8 downsamples original imgs by 8x
-        
-        poses = np.moveaxis(poses, -1, 0).astype(np.float32)
-        images = np.moveaxis(imgs, -1, 0).astype(np.float32)
-        bds = np.moveaxis(bds, -1, 0).astype(np.float32)
-        
+    if args.dataset_type == 'deblur':
+        images, poses, bds, render_poses, i_test, quaternion, velocity = load_deblur_data(args, args.datadir, args.factor,
+                                                                                            recenter=False, bd_factor=.75,
+                                                                                            spherify=args.spherify,
+                                                                                            path_epi=args.render_epi)
         hwf = poses[0, :3, -1]
         poses = poses[:, :3, :4]
-        render_poses = poses
-        print('Loaded room', images.shape, render_poses.shape, hwf, args.datadir)
 
-        print('Room holdout,', args.llffhold)
+        print('Loaded llff', images.shape, render_poses.shape, hwf, args.datadir)
+        if not isinstance(i_test, list):
+            i_test = [i_test]
+
+        print('LLFF holdout,', args.llffhold)
         i_test = np.arange(images.shape[0])[::args.llffhold]
 
         i_val = i_test
         i_train = np.array([i for i in np.arange(int(images.shape[0])) if
                             (i not in i_test and i not in i_val)])
 
+        print('DEFINING BOUNDS')
         if args.no_ndc:
-            near = np.ndarray.min(bds) * .9
-            far = np.ndarray.max(bds) * 1.
+            near = np.min(bds) * 0.9
+            far = np.max(bds) * 1.0
         else:
             near = 0.
             far = 1.
+        print('NEAR FAR', near, far)
 
     elif args.dataset_type == 'llff':
         images, poses, bds, render_poses, i_test = load_llff_data(args, args.datadir, args.factor,
@@ -335,6 +340,8 @@ def train():
                            random_mode=args.kernel_random_mode,
                            img_embed=args.kernel_img_embed,
                            spatial_embed=args.kernel_spatial_embed,
+                           quater_embed=args.kernel_quater_embed, 
+                           velocity_embed=args.kernel_velocity_embed,
                            depth_embed=args.kernel_depth_embed,
                            num_hidden=args.kernel_num_hidden,
                            num_wide=args.kernel_num_wide,
@@ -536,6 +543,10 @@ def train():
         # Sample random ray batch
         iter_data = {k: v[i_batch:i_batch + N_rand] for k, v in train_datas.items()}
         batch_rays = iter_data.pop('rays').permute(0, 2, 1)
+
+        if args.dataset_type == 'deblur':
+            iter_data['quaternion'] = torch.tensor(quaternion)
+            iter_data['velocity'] = torch.tensor(velocity)
 
         i_batch += N_rand
         if i_batch >= len(train_datas['rays']):

@@ -21,7 +21,7 @@ def init_linear_weights(m):
 
 class DSKnet(nn.Module):
     def __init__(self, num_img, poses, num_pt, kernel_hwindow, *, random_hwindow=0.25,
-                 in_embed=3, random_mode='input', img_embed=32, spatial_embed=0, depth_embed=0,
+                 in_embed=3, random_mode='input', img_embed=32, spatial_embed=0, quater_embed=0, velocity_embed=0, depth_embed=0,
                  num_hidden=3, num_wide=64, short_cut=False, pattern_init_radius=0.1,
                  isglobal=False, optim_trans=False, optim_spatialvariant_trans=False):
         """
@@ -45,6 +45,10 @@ class DSKnet(nn.Module):
         isglobal: control whether the canonical kernel should be shared by all the input views or not, does not have big impact on the results
         optim_trans: whether to optimize the ray origin described in Sec. 4.3
         optim_spatialvariant_trans: whether to optimize the ray origin for each view or each kernel point. 
+
+        boxiang's note->
+        quater_embed: embedding for camera rotation, with respect to the last frame
+        velocity_embed: embedding for camera translation, with respect to the last frame
         """
         super().__init__()
         self.num_pt = num_pt
@@ -81,6 +85,16 @@ class DSKnet(nn.Module):
         else:
             self.spatial_embed_fn, self.spatial_embed_cnl = None, 0
 
+        if quater_embed > 0:
+            self.quater_embed_fn, self.quater_embed_cnl = get_embedder(quater_embed, input_dim=2)
+        else:
+            self.quater_embed_fn, self.quater_embed_cnl = None, 0
+
+        if velocity_embed > 0:
+            self.velocity_embed_fn, self.velocity_embed_cnl = get_embedder(velocity_embed, input_dim=2)
+        else:
+            self.velocity_embed_fn, self.velocity_embed_cnl = None, 0
+
         if depth_embed > 0:
             self.require_depth = True
             self.depth_embed_fn, self.depth_embed_cnl = get_embedder(depth_embed, input_dim=1)
@@ -88,7 +102,7 @@ class DSKnet(nn.Module):
             self.require_depth = False
             self.depth_embed_fn, self.depth_embed_cnl = None, 0
 
-        in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl
+        in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl + int(self.quater_embed_cnl*2) + int(self.velocity_embed_cnl*1.5)
         out_cnl = 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy
         hiddens = [nn.Linear(num_wide, num_wide) if i % 2 == 0 else nn.ReLU()
                    for i in range((num_hidden - 1) * 2)]
@@ -146,8 +160,26 @@ class DSKnet(nn.Module):
 
         # expand img_embed form [128,32] into [128,5,32], then get x, with shape [128,5,42]
         img_embed_expand = img_embed[:, None].expand(len(img_embed), self.num_pt, self.img_embed_cnl)
-        x = torch.cat([pt_pos, img_embed_expand], dim=-1)
+        x = torch.cat([pt_pos, img_embed_expand], dim=-1).type(torch.float32)
         
+        # apply embedding to the camera rotation (quaternion)
+        if self.quater_embed_fn is not None:
+            quaternion = rays_info['quaternion'][img_idx]
+            quaternion = (quaternion - torch.min(quaternion, dim=0)[0]) / torch.max(quaternion, dim=0)[0]
+            quater = self.quater_embed_fn(quaternion)
+            quater = quater[:,None,:].expand(quater.shape[0], self.num_pt, quater.shape[-1])
+            x = torch.cat([x, quater], dim=-1)
+
+
+        # apply embedding to the camera translation (velocity)
+        if self.velocity_embed_fn is not None:
+            velocity = rays_info['velocity'][img_idx]
+            velocity = (velocity - torch.min(velocity, dim=0)[0]) / torch.max(velocity, dim=0)[0]
+            velo = self.velocity_embed_fn(velocity)
+            velo = velo[:,None,:].expand(velo.shape[0], self.num_pt, velo.shape[-1])
+            x = torch.cat([x, velo], dim=-1)
+
+
         # apply embedding to the rays spatial, then get x, with shape [128,5,52]
         rays_x, rays_y = rays_info['rays_x'], rays_info['rays_y']
         if self.spatial_embed_fn is not None:
@@ -167,10 +199,10 @@ class DSKnet(nn.Module):
             x = torch.cat([x, depth], dim=-1)
 
         # forward
-        x1 = self.linears(x) # from [128, 5, 52] to [128, 5, 64]
+        x1 = self.linears(x.float()) # from [128, 5, 52] to [128, 5, 64]
         # short_cut is True, from [128, 5, 64] to [128, 5, 116]
         x1 = torch.cat([x, x1], dim=-1) if self.short_cut else x1 
-        x1 = self.linears1(x1) # from [128, 5, 64] to [128, 5, 5]
+        x1 = self.linears1(x1.float()) # from [128, 5, 64] to [128, 5, 5]
 
         delta_trans = None
         if self.optim_sv_trans:
