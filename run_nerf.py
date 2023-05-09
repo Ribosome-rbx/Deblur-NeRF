@@ -132,6 +132,14 @@ def config_parser():
                         help='end iteration of the align loss')
     parser.add_argument("--kernel_align_weight", type=float, default=0,
                         help='align term weight')
+    
+    parser.add_argument("--parallel_start_iter", type=int, default=0,
+                        help='start iteration of the parallel loss')
+    parser.add_argument("--parallel_end_iter", type=int, default=1e10,
+                        help='end iteration of the parallel loss')
+    parser.add_argument("--kernel_parallel_weight", type=float, default=0,
+                        help='parallelize deform kernel')
+
     parser.add_argument("--prior_start_iter", type=int, default=0,
                         help='start iteration of the prior loss')
     parser.add_argument("--prior_end_iter", type=int, default=1e10,

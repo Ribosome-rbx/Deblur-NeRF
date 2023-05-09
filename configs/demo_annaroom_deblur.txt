@@ -1,8 +1,8 @@
 num_gpu = 1
 expname = version1_qv
-basedir = E:\3DVision\Deblur-NeRF\outputs
+basedir = E:\3DVision\Deblur-NeRF\outputs_blur
 datadir = F:\deblur\AnnaTest\
-tbdir = E:\3DVision\Deblur-NeRF\blurset_outputs\version1_qv\logs
+tbdir = E:\3DVision\Deblur-NeRF\outputs_blur\version1_qv\logs
 dataset_type = deblur
 # factor = 4
 llffhold = 7
@@ -23,6 +23,9 @@ kernel_start_iter = 0
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
+kernel_parallel_weight = 0.02
+parallel_start_iter = 0
+parallel_end_iter = 180000
 
 kernel_type = deformablesparsekernel
 kernel_ptnum = 5

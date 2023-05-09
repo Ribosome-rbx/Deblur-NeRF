@@ -249,7 +249,14 @@ class DSKnet(nn.Module):
 
         align = new_rays_xy[:, 0, :].abs().mean()
         align += (delta_trans[:, 0, :].abs().mean() * 10)
-        return torch.stack([rays_o, rays_d], dim=-1), weight, align
+
+        # parallel loss
+        delta_o = torch.nn.functional.normalize((rays_o - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
+        velocity = torch.nn.functional.normalize(velocity, dim=-1).unsqueeze(1).type(torch.float32)
+        parallel = torch.cross(delta_o, velocity).norm(dim=-1).mean()
+        # atan = torch.arctan(new_rays_xy[...,1]/new_rays_xy[...,0])
+        # parallel = atan.std(dim=-1).mean()
+        return torch.stack([rays_o, rays_d], dim=-1), weight, align, parallel
 
 
 class NeRFAll(nn.Module):
@@ -486,7 +493,7 @@ class NeRFAll(nn.Module):
                         rays_info["ray_depth"] = depth[:, None]
 
                 # time0 = time.time()
-                new_rays, weight, align_loss = self.kernelsnet(H, W, K, rays, rays_info)
+                new_rays, weight, align_loss, parallel_loss = self.kernelsnet(H, W, K, rays, rays_info)
                 ray_num, pt_num = new_rays.shape[:2]
 
                 # time1 = time.time()
@@ -504,11 +511,12 @@ class NeRFAll(nn.Module):
                 # print(f"Time| kernel: {time1-time0:.5f}, nerf: {time2-time1:.5f}, fuse: {time3-time2}")
 
                 other_loss = {}
-                # compute align loss, some priors of the ray pattern
+                # compute align loss and parallel loss, some priors of the ray pattern
                 # ========================
                 if align_loss is not None:
                     other_loss["align"] = align_loss.reshape(1, 1)
-
+                if parallel_loss is not None:
+                    other_loss['parallel'] = parallel_loss.reshape(1, 1)
                 return rgb, rgb0, other_loss
             else:
                 rgb, depth, acc, extras = self.render(H, W, K, chunk, rays, **kwargs)
