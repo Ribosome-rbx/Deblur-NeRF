@@ -23,7 +23,7 @@ kernel_start_iter = 0
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
-kernel_parallel_weight = 0.02
+kernel_parallel_weight = 0.05
 parallel_start_iter = 0
 parallel_end_iter = 180000
 

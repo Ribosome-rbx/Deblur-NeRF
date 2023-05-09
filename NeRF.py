@@ -251,11 +251,11 @@ class DSKnet(nn.Module):
         align += (delta_trans[:, 0, :].abs().mean() * 10)
 
         # parallel loss
-        delta_o = torch.nn.functional.normalize((rays_o - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
+        delta_o = torch.nn.functional.normalize((rays_o[:,1:] - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
         velocity = torch.nn.functional.normalize(velocity, dim=-1).unsqueeze(1).type(torch.float32)
         parallel = torch.cross(delta_o, velocity.expand(delta_o.shape)).norm(dim=-1).mean()
-        # atan = torch.arctan(new_rays_xy[...,1]/new_rays_xy[...,0])
-        # parallel = atan.std(dim=-1).mean()
+        atan = torch.arctan(new_rays_xy[:,1:,1]/new_rays_xy[:,1:,0])
+        parallel += atan.std(dim=-1).mean()
         return torch.stack([rays_o, rays_d], dim=-1), weight, align, parallel
 
 
