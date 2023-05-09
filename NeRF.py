@@ -103,7 +103,7 @@ class DSKnet(nn.Module):
             self.depth_embed_fn, self.depth_embed_cnl = None, 0
 
         in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl + int(self.quater_embed_cnl*2) + int(self.velocity_embed_cnl*1.5)
-        out_cnl = 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy
+        out_cnl = 1 + 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy, s -> scale factor for align
         hiddens = [nn.Linear(num_wide, num_wide) if i % 2 == 0 else nn.ReLU()
                    for i in range((num_hidden - 1) * 2)]
         # hiddens = [nn.Linear(num_wide, num_wide), nn.ReLU()] * num_hidden
@@ -206,7 +206,7 @@ class DSKnet(nn.Module):
 
         delta_trans = None
         if self.optim_sv_trans:
-            delta_trans, delta_pos, weight = torch.split(x1, [2, 2, 1], dim=-1)
+            delta_trans, delta_pos, weight, scale = torch.split(x1, [2, 2, 1, 1], dim=-1)
         else:
             delta_pos, weight = torch.split(x1, [2, 1], dim=-1)
 

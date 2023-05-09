@@ -37,6 +37,13 @@
 | base deblur  |  Deblur-NeRF/outputs/blur_annaroom_Rt_wScale   |    \    |  \ |
 | provide camera | Deblur-NeRF/outputs/blur_annaroom_Rt_wScale_camera |     \    |  \ |
 
+### tune parallel loss
+| Exp Setting | Folder  | details | results |
+|-------------|---------|---------|---------|
+| base deblur  |  Deblur-NeRF/outputs_blur/base_deblur   |    \    |  \ |
+| traj deblur | Deblur-NeRF/outputs/version1_qv |     \    |  \ |
+| parallel | Deblur-NeRF/outputs/version2_parallel |    ray_o[5] + start0 + 0.1    |  \ |
+| parallel | Deblur-NeRF/outputs/version2_parallel_1200_0.01 |    ray_o[4] + atan[4] + start1200 + 0.01    |  \ |
 
 ## Plan
 
