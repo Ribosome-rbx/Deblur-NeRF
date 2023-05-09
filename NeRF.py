@@ -103,7 +103,7 @@ class DSKnet(nn.Module):
             self.depth_embed_fn, self.depth_embed_cnl = None, 0
 
         in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl + int(self.quater_embed_cnl*2) + int(self.velocity_embed_cnl*1.5)
-        out_cnl = 1 + 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy, s -> scale factor for align
+        out_cnl = 2 + 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy, s -> scale factor for align
         hiddens = [nn.Linear(num_wide, num_wide) if i % 2 == 0 else nn.ReLU()
                    for i in range((num_hidden - 1) * 2)]
         # hiddens = [nn.Linear(num_wide, num_wide), nn.ReLU()] * num_hidden
@@ -206,7 +206,7 @@ class DSKnet(nn.Module):
 
         delta_trans = None
         if self.optim_sv_trans:
-            delta_trans, delta_pos, weight, scale = torch.split(x1, [2, 2, 1, 1], dim=-1)
+            delta_trans, delta_pos, weight, scale = torch.split(x1, [2, 2, 1, 2], dim=-1)
         else:
             delta_pos, weight = torch.split(x1, [2, 1], dim=-1)
 
@@ -247,8 +247,10 @@ class DSKnet(nn.Module):
         rays_o = torch.sum(translation[..., None, :] * poses[:, None], dim=-1)
         # rays_o = poses[..., None, :3, -1].expand_as(rays_d)
 
-        align = new_rays_xy[:, 0, :].abs().mean()
-        align += (delta_trans[:, 0, :].abs().mean() * 10)
+        # align = new_rays_xy[:, 0, :].abs().mean()
+        # align += (delta_trans[:, 0, :].abs().mean() * 10)
+        scale = scale.abs()
+        align = (new_rays_xy.abs()*scale[...,0,None]+ delta_trans.abs()*scale[...,1,None]).mean()
 
         # parallel loss
         delta_o = torch.nn.functional.normalize((rays_o[:,1:] - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
