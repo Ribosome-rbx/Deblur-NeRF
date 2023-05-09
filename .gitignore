@@ -8,5 +8,6 @@
 data/*
 logs/*
 outputs/*
+outputs_blur/*
 deblurnerf_dataset/
 dataset/*

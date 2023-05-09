@@ -14,6 +14,8 @@
 * Change access `chmod -R u+rwx,g+rwx,o+rx ./`
 
 > Training `sbatch --time=16:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4 > ./logs/training_log"`
+> Training `sbatch --time=16:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_deblur_euler.txt --datadownsample 4 > ./logs/training_log"`
+
 
 > Only Render `sbatch --time=1:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4 --render_only --render_factor 4 > ./logs/training_log"`
 
