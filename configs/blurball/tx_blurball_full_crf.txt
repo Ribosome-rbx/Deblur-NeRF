@@ -1,16 +1,16 @@
 num_gpu = 1
-expname = blurball1_full_crf_woprior_wodepth
-basedir = /apdcephfs/private_leema/data/NeRF/logs_exp
-datadir = /apdcephfs/private_leema/data/NeRF/blurball
-tbdir = /apdcephfs/private_leema/data/NeRF/tensorboard_exp
+expname = blurball1_full_crf
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs/blurball1_full_crf/logs
 dataset_type = llff
 
 factor = 4
 llffhold = 7
 
-N_rand = 1024
-N_samples = 64
-N_importance = 64
+N_rand = 128
+N_samples = 32
+N_importance = 32
 N_iters = 200000
 lrate = 5e-4
 lrate_decay = 250
