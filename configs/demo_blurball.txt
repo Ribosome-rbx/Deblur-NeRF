@@ -18,7 +18,7 @@ use_viewdirs = True
 raw_noise_std = 1e0
 rgb_activate = sigmoid
 
-kernel_start_iter = 1200
+kernel_start_iter = 0
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000

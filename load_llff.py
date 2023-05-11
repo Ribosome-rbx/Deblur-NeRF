@@ -1,6 +1,6 @@
 import numpy as np
 import os, imageio
-
+from scipy.spatial.transform import Rotation
 
 ########## Slightly modified version of LLFF data loading code 
 ##########  see https://github.com/Fyusion/LLFF for original
@@ -57,13 +57,24 @@ def _minify(basedir, factors=[], resolutions=[]):
         print('Done')
 
 def _load_deblur_data(basedir, factor=None, width=None, height=None, load_imgs=True, filter = None):
-    poses_arr = np.load(os.path.join(basedir, 'poses_bounds_qv.npy'))
+    poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :15].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, 15:17].transpose([1, 0])
-    quaternion = poses_arr[:, 17:21]
-    velocity = poses_arr[:, 21:]
 
-    
+    # compute quaternion and velocity
+    R0 = poses[:,:3,:-1].transpose(2,0,1)
+    R1 = poses[:,:3,1:].transpose(2,0,1)
+    t0 = poses[:,3,:-1].transpose(1,0)
+    t1 = poses[:,3,1:].transpose(1,0)
+    # Convert rotation matrix to quaternion
+    quat0 = Rotation.from_matrix(R0).as_quat()
+    quat1 = Rotation.from_matrix(R1).as_quat()
+    quat_velocity = Rotation.from_quat(quat1 * quat0.conj()).as_quat() / 1.0 # dt = 1.0
+    quaternion = np.zeros([len(poses_arr),4])
+    quaternion[1:] = quat_velocity
+    velocity = np.zeros([len(poses_arr),3])
+    velocity[1:] = (t1 - t0) / 1.0 # dt = 1.0    
+
     if filter is not None:
         poses = poses[...,filter]
         bds = bds[...,filter]
@@ -312,12 +323,12 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1) # origional deblur
+    # poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1) # origional deblur
     # poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
     # poses[:,3,:] = np.array([poses[0,3,:],-poses[1,3,:],-poses[2,3,:]])
     # backup strange rotation ##################
-    # poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
-    # poses[:,3,:] = np.array([-poses[1,3,:],-poses[0,3,:],-poses[2,3,:]])
+    poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
+    poses[:,3,:] = np.array([-poses[1,3,:],-poses[0,3,:],-poses[2,3,:]])
     # backup strange rotation ##################
     
     poses = np.moveaxis(poses, -1, 0).astype(np.float32)
@@ -386,8 +397,8 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
     return images, poses, bds, render_poses, i_test
 
 def load_deblur_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spherify=False, path_epi=False):
-    filter = [i for i in range(682,742)]
-    poses, bds, imgs, quaternion, velocity = _load_deblur_data(basedir, factor=factor, filter = filter)  # factor=8 downsamples original imgs by 8x
+    # filter = [i for i in range(682,742)]
+    poses, bds, imgs, quaternion, velocity = _load_deblur_data(basedir, factor=factor)  # factor=8 downsamples original imgs by 8x
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0

@@ -1,27 +1,25 @@
 num_gpu = 1
-expname = base_blurball
-basedir = E:\3DVision\Deblur-NeRF\outputs_blur
-datadir = E:\3DVision\Deblur-NeRF\deblurnerf_dataset\real_camera_motion_blur\blurball
-tbdir = E:\3DVision\Deblur-NeRF\outputs_blur\base_blurball\logs
+expname = bookshelf_base
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset/bookshelf
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs/logs
 dataset_type = llff
-
-factor = 4
+# factor = 1
 llffhold = 7
 
-N_rand = 128
+N_rand = 1024
 N_samples = 32
-N_importance = 32
-N_iters = 200000
+N_importance = 64
+N_iters = 50000
 lrate = 5e-4
 lrate_decay = 250
+datadownsample = 4
 
 use_viewdirs = True
 raw_noise_std = 1e0
-rgb_activate = none
+rgb_activate = sigmoid
 
 kernel_start_iter = 1200
-# kernel_prior_weight = 0.1
-# prior_start_iter = 15000
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
@@ -41,7 +39,9 @@ kernel_num_wide = 64
 kernel_shortcut
 
 kernel_spatialvariant_trans
-tone_mapping_type = learn
+tone_mapping_type = gamma
 
 render_rmnearplane = 10
+no_ndc = True
+i_testset = 5000
 i_video = 200000

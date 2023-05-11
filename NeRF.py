@@ -170,7 +170,6 @@ class DSKnet(nn.Module):
             quater = quater[:,None,:].expand(quater.shape[0], self.num_pt, quater.shape[-1])
             x = torch.cat([x, quater], dim=-1)
 
-
         # apply embedding to the camera translation (velocity)
         if self.velocity_embed_fn is not None:
             velocity = rays_info['velocity'][img_idx]
@@ -178,7 +177,6 @@ class DSKnet(nn.Module):
             velo = self.velocity_embed_fn(velocity)
             velo = velo[:,None,:].expand(velo.shape[0], self.num_pt, velo.shape[-1])
             x = torch.cat([x, velo], dim=-1)
-
 
         # apply embedding to the rays spatial, then get x, with shape [128,5,52]
         rays_x, rays_y = rays_info['rays_x'], rays_info['rays_y']
@@ -253,13 +251,14 @@ class DSKnet(nn.Module):
         # breakpoint()
         # align =  (((new_rays_xy.abs()+ delta_trans.abs()*10)*scale) / scale.sum() ).mean()
 
-        # parallel loss
-        delta_o = torch.nn.functional.normalize((rays_o[:,1:] - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
-        velocity = torch.nn.functional.normalize(velocity, dim=-1).unsqueeze(1).type(torch.float32)
-        parallel = torch.cross(delta_o, velocity.expand(delta_o.shape)).norm(dim=-1).mean()
-        atan = torch.arctan(new_rays_xy[:,1:,1]/new_rays_xy[:,1:,0])
-        parallel += atan.std(dim=-1).mean()
-        return torch.stack([rays_o, rays_d], dim=-1), weight, align, parallel
+        # # parallel loss
+        # delta_o = torch.nn.functional.normalize((rays_o[:,1:] - poses[...,-1].unsqueeze(1)), dim=-1).type(torch.float32)
+        # velocity = torch.nn.functional.normalize(velocity, dim=-1).unsqueeze(1).type(torch.float32)
+        # parallel = torch.cross(delta_o, velocity.expand(delta_o.shape)).norm(dim=-1).mean()
+        # atan = torch.arctan(new_rays_xy[:,1:,1]/new_rays_xy[:,1:,0])
+        # parallel += atan.std(dim=-1).mean()
+        # return torch.stack([rays_o, rays_d], dim=-1), weight, align, parallel
+        return torch.stack([rays_o, rays_d], dim=-1), weight, align
 
 
 class NeRFAll(nn.Module):
@@ -496,7 +495,8 @@ class NeRFAll(nn.Module):
                         rays_info["ray_depth"] = depth[:, None]
 
                 # time0 = time.time()
-                new_rays, weight, align_loss, parallel_loss = self.kernelsnet(H, W, K, rays, rays_info)
+                # new_rays, weight, align_loss, parallel_loss = self.kernelsnet(H, W, K, rays, rays_info)
+                new_rays, weight, align_loss = self.kernelsnet(H, W, K, rays, rays_info)
                 ray_num, pt_num = new_rays.shape[:2]
 
                 # time1 = time.time()
@@ -518,8 +518,8 @@ class NeRFAll(nn.Module):
                 # ========================
                 if align_loss is not None:
                     other_loss["align"] = align_loss.reshape(1, 1)
-                if parallel_loss is not None:
-                    other_loss['parallel'] = parallel_loss.reshape(1, 1)
+                # if parallel_loss is not None:
+                #     other_loss['parallel'] = parallel_loss.reshape(1, 1)
                 return rgb, rgb0, other_loss
             else:
                 rgb, depth, acc, extras = self.render(H, W, K, chunk, rays, **kwargs)

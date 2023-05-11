@@ -1,8 +1,8 @@
 num_gpu = 1
-expname = base_blurball
-basedir = E:\3DVision\Deblur-NeRF\outputs_blur
-datadir = E:\3DVision\Deblur-NeRF\deblurnerf_dataset\real_camera_motion_blur\blurball
-tbdir = E:\3DVision\Deblur-NeRF\outputs_blur\base_blurball\logs
+expname = blurball1_full_crf
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs/blurball1_full_crf/logs
 dataset_type = llff
 
 factor = 4
@@ -44,4 +44,3 @@ kernel_spatialvariant_trans
 tone_mapping_type = learn
 
 render_rmnearplane = 10
-i_video = 200000
