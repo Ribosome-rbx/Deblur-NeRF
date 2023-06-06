@@ -1,16 +1,16 @@
 num_gpu = 1
-expname = version2_parallel_1200_p0_a03
-basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur
-datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset
-tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur/version2_parallel_1200_p0_a03/logs
+expname = modified
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_finalblur
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset/AnnaTest
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_finalblur/modified/logs
 dataset_type = deblur
 # factor = 4
 llffhold = 7
 
-N_rand = 128
+N_rand = 1024
 N_samples = 32
 N_importance = 32
-N_iters = 200000
+N_iters = 50000
 lrate = 5e-4
 lrate_decay = 250
 datadownsample = 4
@@ -19,7 +19,7 @@ use_viewdirs = True
 raw_noise_std = 1e0
 rgb_activate = sigmoid
 
-kernel_start_iter = 0
+kernel_start_iter = 1200
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
@@ -49,3 +49,5 @@ tone_mapping_type = gamma
 render_rmnearplane = 10
 no_ndc = True
 i_video = 200000
+i_weights = 5000
+i_testset = 5000

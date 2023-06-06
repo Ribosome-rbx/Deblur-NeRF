@@ -1,15 +1,15 @@
 num_gpu = 1
-expname = annaroom_debug05_nokernel
-basedir = E:\3DVision\Deblur-NeRF\outputs
-datadir = F:\deblur\AnnaTest\
-tbdir = E:\3DVision\Deblur-NeRF\outputs\annaroom_debug05_nokernel\logs
+expname = room_video
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset/img
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs/logs
 dataset_type = llff
-# factor = 4
+# factor = 1
 llffhold = 7
 
-N_rand = 128
+N_rand = 1024
 N_samples = 32
-N_importance = 32
+N_importance = 64
 N_iters = 200000
 lrate = 5e-4
 lrate_decay = 250
@@ -19,12 +19,12 @@ use_viewdirs = True
 raw_noise_std = 1e0
 rgb_activate = sigmoid
 
-kernel_start_iter = 6000
+kernel_start_iter = 1200
 kernel_align_weight = 0.1
 align_start_iter = 0
 align_end_iter = 180000
 
-kernel_type = none
+kernel_type = deformablesparsekernel
 kernel_ptnum = 5
 kernel_random_hwindow = 0.15
 kernel_random_mode = input
@@ -43,6 +43,9 @@ tone_mapping_type = gamma
 
 render_rmnearplane = 10
 no_ndc = True
-i_weight = 2000
-i_testset = 2000
+i_testset = 100001
 i_video = 200000
+i_weights = 100001
+
+render_only = True
+chunk = 262144

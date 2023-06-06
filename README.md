@@ -1,4 +1,17 @@
 # Depth-Supervison NeRF for project of ETHZ 3DVison Lecture
+## output files
+./outputs_finalblur (AnnaTest image 682,742)
+- base: base deblurNerf
+- modified: Trajectory deblurNerf
+
+./final_outputs
+- poseter_base: base deblurNerf (modified dataset - poster)
+- bookshelf_base: base deblurNerf (modified dataset - bookshelf)
+- room_base: base deblurNerf (modified dataset - img)
+- room_video: Annaroom Train
+
+./outpus_blur (process to try different modifications -> useless)
+./outputs (process to find correct camera pose)
 
 ## Euler commands
 * Load module`module load gcc/8.2.0 cuda/11.6.2 python/3.8.5 cudnn/8.0.5 cmake/3.19.8 eth_proxy`
@@ -14,11 +27,12 @@
 * Change access `chmod -R u+rwx,g+rwx,o+rx ./`
 
 > Training `sbatch --time=16:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4 > ./logs/training_log"`
-> Training `sbatch --time=16:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_deblur_euler.txt --datadownsample 4 > ./logs/training_log"`
+> Training `sbatch --time=10:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/final/room_euler.txt --datadownsample 4 > ./logs/training_log"`
+> Training `sbatch --time=10:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/final/test_euler.txt --datadownsample 4 > ./logs/training_log"`
 > Training Blurball: `sbatch --time=16:00:00 --gpus=1 --gres=gpumem:36g --cpus-per-task=1 --mem-per-cpu=36g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/blurball/tx_blurball_full_crf.txt > ./logs/training_log"`
 
 
-> Only Render `sbatch --time=1:00:00 --gpus=1 --gres=gpumem:16g --cpus-per-task=1 --mem-per-cpu=8g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/demo_annaroom_euler.txt --datadownsample 4 --render_only --render_factor 4 > ./logs/training_log"`
+> Only Render `sbatch --time=10:00:00 --gpus=1 --gres=gpumem:32g --cpus-per-task=1 --mem-per-cpu=32g --output=./logs/raw_output --open-mode=append --wrap="python run_nerf.py --config configs/final/test_euler.txt --datadownsample 4 > ./logs/training_log"`
 
 > PNG 2 Video `ffmpeg -framerate 25 -i "%03d.png" -c:v libx264 -pix_fmt yuv420p rgb.mp4`
 

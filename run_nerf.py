@@ -108,10 +108,6 @@ def config_parser():
                         help='<float>, <<int#, such as<int5>>>, <fix>')
     parser.add_argument("--kernel_random_mode", type=str, default='input',
                         help='<input>, <output>')
-    parser.add_argument("--kernel_spatial_embed", type=int, default=0,
-                        help='the dim of spatial coordinate embedding')
-    parser.add_argument("--kernel_quater_embed", type=int, default=0,
-                        help='the dim of quaternion coordinate embedding')
     parser.add_argument("--kernel_velocity_embed", type=int, default=0,
                         help='the dim of velocity coordinate embedding')
     parser.add_argument("--kernel_depth_embed", type=int, default=0,
@@ -222,6 +218,13 @@ def config_parser():
                         help='frequency of testset saving')
     parser.add_argument("--i_video", type=int, default=20000,
                         help='frequency of render_poses video saving')
+    
+    ################# trajectory embedding ######################
+    parser.add_argument("--kernel_spatial_embed", type=int, default=0,
+                        help='the dim of spatial coordinate embedding')
+    parser.add_argument("--kernel_quater_embed", type=int, default=0,
+                        help='the dim of quaternion coordinate embedding')
+
 
     return parser
 
@@ -422,8 +425,9 @@ def train():
 
     global_step = start
 
+    render_poses = Slerp_path(np.array(poses[:,:3,:4]), 6)
     # Move testing data to GPU
-    render_poses = torch.tensor(render_poses[:, :3, :4]).cuda()
+    render_poses = torch.from_numpy(np.array(render_poses)).cuda()
     nerf = nerf.cuda()
     # Short circuit if only rendering out from trained model
     if args.render_only:
@@ -435,32 +439,43 @@ def train():
                                        f"_{start:06d}")
             os.makedirs(testsavedir, exist_ok=True)
             print('test poses shape', render_poses.shape)
-
-            dummy_num = ((len(poses) - 1) // args.num_gpu + 1) * args.num_gpu - len(poses)
-            dummy_poses = torch.eye(3, 4).unsqueeze(0).expand(dummy_num, 3, 4).type_as(render_poses)
-
-            print(f"Append {dummy_num} # of poses to fill all the GPUs")
             nerf.eval()
-            rgbshdr, disps = nerf(
-                hwf[0], hwf[1], K, args.chunk,
-                poses=torch.cat([render_poses, dummy_poses], dim=0),
-                render_kwargs=render_kwargs_test,
-                render_factor=args.render_factor,
-            )
-            rgbshdr = rgbshdr[:len(rgbshdr) - dummy_num]
-            disps = (1. - disps)
-            disps = disps[:len(disps) - dummy_num].cpu().numpy()
-            rgbs = rgbshdr
-            rgbs = to8b(rgbs.cpu().numpy())
-            disps = to8b(disps / disps.max())
+
             if args.render_test:
+                dummy_num = ((len(poses) - 1) // args.num_gpu + 1) * args.num_gpu - len(poses)
+                dummy_poses = torch.eye(3, 4).unsqueeze(0).expand(dummy_num, 3, 4).type_as(render_poses)
+                print(f"Append {dummy_num} # of poses to fill all the GPUs")
+                rgbshdr, disps = nerf(
+                    hwf[0], hwf[1], K, args.chunk,
+                    poses=torch.cat([render_poses, dummy_poses], dim=0),
+                    render_kwargs=render_kwargs_test,
+                    render_factor=args.render_factor,
+                )
+                rgbshdr = rgbshdr[:len(rgbshdr) - dummy_num]
+                disps = (1. - disps)
+                disps = disps[:len(disps) - dummy_num].cpu().numpy()
+                rgbs = rgbshdr
+                rgbs = to8b(rgbs.cpu().numpy())
+                disps = to8b(disps / disps.max())
                 for rgb_idx, rgb8 in enumerate(rgbs):
                     imageio.imwrite(os.path.join(testsavedir, f'{rgb_idx:03d}.png'), rgb8)
                     imageio.imwrite(os.path.join(testsavedir, f'{rgb_idx:03d}_disp.png'), disps[rgb_idx])
             else:
+                poses_length = render_poses.shape[0]
+                video_pieces = 10
                 prefix = 'epi_' if args.render_epi else ''
-                imageio.mimwrite(os.path.join(testsavedir, f'{prefix}video.mp4'), rgbs, fps=30, quality=9)
-                imageio.mimwrite(os.path.join(testsavedir, f'{prefix}video_disp.mp4'), disps, fps=30, quality=9)
+                for piece in range(video_pieces):
+                    cut_start = poses_length*piece // video_pieces
+                    cut_end = poses_length*(piece+1) // video_pieces
+                    rgbshdr, disps = nerf(
+                        hwf[0], hwf[1], K, args.chunk,
+                        poses=render_poses[cut_start : cut_end],
+                        render_kwargs=render_kwargs_test,
+                        render_factor=args.render_factor,
+                    )
+                    rgbs = to8b(rgbshdr.cpu().numpy())
+                    imageio.mimwrite(os.path.join(testsavedir, f'{prefix}video_{str(piece)}.mp4'), rgbs, fps=30, quality=9)
+                    # imageio.mimwrite(os.path.join(testsavedir, f'{prefix}video_disp{str(piece)}.mp4'), disps, fps=30, quality=9)
 
             if args.render_test and args.render_multipoints:
                 for pti in range(args.kernel_ptnum):
@@ -482,7 +497,7 @@ def train():
                     for rgb_idx, rgb8 in enumerate(rgbs):
                         imageio.imwrite(os.path.join(testsavedir, f'{rgb_idx:03d}_pt{pti}.png'), rgb8)
                         imageio.imwrite(os.path.join(testsavedir, f'w_{rgb_idx:03d}_pt{pti}.png'), weights[rgb_idx])
-            return
+        return
 
     # ============================================
     # Prepare ray dataset if batching random rays

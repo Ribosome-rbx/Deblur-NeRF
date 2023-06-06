@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from scipy import interpolate
+from scipy.spatial.transform import Slerp, Rotation
 
 # Misc
 img2mse = lambda x, y: torch.mean((x - y) ** 2)
@@ -418,3 +420,31 @@ def smart_load_state_dict(model: nn.Module, state_dict: dict):
     if isinstance(model, nn.DataParallel):
         state_dict = {"module." + k: v for k, v in state_dict.items()}
     model.load_state_dict(state_dict)
+
+def Slerp_path(poses, interpolate_node=1):
+    """
+    Parameters
+        poses: [N, 3, 4] Lists of pose of rendering path
+        interpolate_node: nodes number 
+
+    Return
+        render_poses: [m*(N-1)+N, 3, 4]
+    """
+    views_NUM = len(poses)
+    inter_time = np.linspace(0., 1., num=interpolate_node+2)
+    render_poses = [poses[0]]
+    for v_idx in range(views_NUM-1):
+        key_rots = Rotation.from_matrix(poses[v_idx:v_idx+2, :3, :3])
+        slerp = Slerp([0.0, 1.0], key_rots)
+        interp_rots = slerp(inter_time).as_matrix()
+        # get the translation matrix of interpolate points
+        trans_1 = poses[v_idx, :3, 3]
+        trans_2 = poses[v_idx+1, :3, 3]
+        for idx in range(interpolate_node):
+            time_step = inter_time[idx+1]
+            inter_trans = (1.0-time_step) * trans_1 + time_step * trans_2
+            inter_pose = np.concatenate((interp_rots[idx+1], inter_trans[:,np.newaxis]), axis=1)
+            render_poses.append(inter_pose)
+        # add the end pose
+        render_poses.append(poses[v_idx+1])
+    return render_poses
