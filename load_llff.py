@@ -57,7 +57,7 @@ def _minify(basedir, factors=[], resolutions=[]):
         print('Done')
 
 def _load_deblur_data(basedir, factor=None, width=None, height=None, load_imgs=True, filter = None):
-    poses_arr = np.load(os.path.join(basedir, 'poses_bounds_inv.npy'))
+    poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :15].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, 15:17].transpose([1, 0])
 
@@ -129,7 +129,7 @@ def _load_deblur_data(basedir, factor=None, width=None, height=None, load_imgs=T
     return poses, bds, imgs, quaternion, velocity
 
 def _load_data(basedir, factor=None, width=None, height=None, load_imgs=True, filter = None):
-    poses_arr = np.load(os.path.join(basedir, 'poses_bounds_inv.npy'))
+    poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1, 2, 0])
     bds = poses_arr[:, -2:].transpose([1, 0])
     
@@ -397,17 +397,12 @@ def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spheri
     return images, poses, bds, render_poses, i_test
 
 def load_deblur_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spherify=False, path_epi=False):
-    filter = [i for i in range(682,742)]
-    poses, bds, imgs, quaternion, velocity = _load_deblur_data(basedir, factor=factor, filter=filter)  # factor=8 downsamples original imgs by 8x
+    poses, bds, imgs, quaternion, velocity = _load_deblur_data(basedir, factor=factor)  # factor=8 downsamples original imgs by 8x
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
-    # poses[:,3,:] = np.array([poses[0,3,:],-poses[1,3,:],-poses[2,3,:]])
-    # backup strange rotation ##################
-    # poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
-    # poses[:,3,:] = np.array([-poses[1,3,:],-poses[0,3,:],-poses[2,3,:]])
-    # backup strange rotation ##################
+    poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1)
+    # poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)
     
     poses = np.moveaxis(poses, -1, 0).astype(np.float32)
     imgs = np.moveaxis(imgs, -1, 0).astype(np.float32)

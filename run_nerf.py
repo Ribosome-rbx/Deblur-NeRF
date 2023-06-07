@@ -347,6 +347,8 @@ def train():
     if args.kernel_type == 'deformablesparsekernel':
         kernelnet = DSKnet(len(images), torch.tensor(poses[:, :3, :4]),
                            args.kernel_ptnum, args.kernel_hwindow,
+                           quaternion=torch.tensor(quaternion),
+                           velocity=torch.tensor(velocity),
                            random_hwindow=args.kernel_random_hwindow, in_embed=args.kernel_rand_embed,
                            random_mode=args.kernel_random_mode,
                            img_embed=args.kernel_img_embed,
@@ -566,10 +568,6 @@ def train():
         # Sample random ray batch
         iter_data = {k: v[i_batch:i_batch + N_rand] for k, v in train_datas.items()}
         batch_rays = iter_data.pop('rays').permute(0, 2, 1)
-
-        if args.dataset_type == 'deblur':
-            iter_data['quaternion'] = torch.tensor(quaternion)
-            iter_data['velocity'] = torch.tensor(velocity)
 
         i_batch += N_rand
         if i_batch >= len(train_datas['rays']):

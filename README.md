@@ -1,5 +1,5 @@
 # Depth-Supervison NeRF for project of ETHZ 3DVison Lecture
-## output files
+## output files euler
 ./outputs_finalblur (AnnaTest image 682,742)
 - base: base deblurNerf
 - modified: Trajectory deblurNerf

@@ -5,6 +5,7 @@ import os
 import imageio
 import time
 
+global old_idx
 
 def init_linear_weights(m):
     if isinstance(m, nn.Linear):
@@ -20,7 +21,7 @@ def init_linear_weights(m):
 
 
 class DSKnet(nn.Module):
-    def __init__(self, num_img, poses, num_pt, kernel_hwindow, *, random_hwindow=0.25,
+    def __init__(self, num_img, poses, num_pt, kernel_hwindow, *, quaternion=None, velocity=None, random_hwindow=0.25,
                  in_embed=3, random_mode='input', img_embed=32, spatial_embed=0, quater_embed=0, velocity_embed=0, depth_embed=0,
                  num_hidden=3, num_wide=64, short_cut=False, pattern_init_radius=0.1,
                  isglobal=False, optim_trans=False, optim_spatialvariant_trans=False):
@@ -78,8 +79,6 @@ class DSKnet(nn.Module):
         else:
             self.in_embed_fn, self.in_embed_cnl = None, 0
 
-        self.img_embed_cnl = img_embed
-
         if spatial_embed > 0:
             self.spatial_embed_fn, self.spatial_embed_cnl = get_embedder(spatial_embed, input_dim=2)
         else:
@@ -102,7 +101,24 @@ class DSKnet(nn.Module):
             self.require_depth = False
             self.depth_embed_fn, self.depth_embed_cnl = None, 0
 
-        in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl + int(self.quater_embed_cnl*2) + int(self.velocity_embed_cnl*1.5)
+        # apply embedding to the camera rotation (quaternion)
+        traj_embedding = None
+        if self.quater_embed_fn is not None:
+            # quaternion = (quaternion - torch.min(quaternion, dim=0)[0]) / (torch.max(quaternion, dim=0)[0] - torch.min(quaternion, dim=0)[0])
+            quater = self.quater_embed_fn(quaternion)
+            # quater = quater[:,None,:].expand(quater.shape[0], self.num_pt, quater.shape[-1])
+
+        # apply embedding to the camera translation (velocity)
+        if self.velocity_embed_fn is not None:
+            # velocity = (velocity - torch.min(velocity, dim=0)[0]) / torch.max(velocity, dim=0)[0]
+            velo = self.velocity_embed_fn(velocity)
+            # velo = velo[:,None,:].expand(velo.shape[0], self.num_pt, velo.shape[-1])
+            traj_embedding = torch.cat([quater, velo], dim=-1)
+            
+        self.img_embed_cnl = img_embed if traj_embedding is None else traj_embedding.shape[-1]
+
+        # in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl + int(self.quater_embed_cnl*2) + int(self.velocity_embed_cnl*1.5)
+        in_cnl = self.in_embed_cnl + self.img_embed_cnl + self.depth_embed_cnl + self.spatial_embed_cnl
         out_cnl = 1 + 2 + 2 if self.optim_sv_trans else 1 + 2  # u, v, w or u, v, w, dx, dy
         hiddens = [nn.Linear(num_wide, num_wide) if i % 2 == 0 else nn.ReLU()
                    for i in range((num_hidden - 1) * 2)]
@@ -120,8 +136,10 @@ class DSKnet(nn.Module):
         if img_embed > 0:
             self.register_parameter("img_embed",
                                     nn.Parameter(torch.zeros(num_img, img_embed).type(torch.float32), True))
+            if traj_embedding is not None: self.img_embed.data = traj_embedding 
         else:
             self.img_embed = None
+
 
     def forward(self, H, W, K, rays, rays_info):
         """
@@ -138,6 +156,8 @@ class DSKnet(nn.Module):
         """
         # find the image embedding for each ray, each embedding has length 32
         img_idx = rays_info['images_idx'].squeeze(-1)
+
+        # img_embed = self.img_embed[img_idx] if self.img_embed is not None else x
         img_embed = self.img_embed[img_idx] if self.img_embed is not None else \
             torch.tensor([]).reshape(len(img_idx), self.img_embed_cnl)
         # img_embed has shape [128, 32]
@@ -161,22 +181,6 @@ class DSKnet(nn.Module):
         # expand img_embed form [128,32] into [128,5,32], then get x, with shape [128,5,42]
         img_embed_expand = img_embed[:, None].expand(len(img_embed), self.num_pt, self.img_embed_cnl)
         x = torch.cat([pt_pos, img_embed_expand], dim=-1).type(torch.float32)
-        
-        # apply embedding to the camera rotation (quaternion)
-        if self.quater_embed_fn is not None:
-            quaternion = rays_info['quaternion'][img_idx]
-            quaternion = (quaternion - torch.min(quaternion, dim=0)[0]) / torch.max(quaternion, dim=0)[0]
-            quater = self.quater_embed_fn(quaternion)
-            quater = quater[:,None,:].expand(quater.shape[0], self.num_pt, quater.shape[-1])
-            x = torch.cat([x, quater], dim=-1)
-
-        # apply embedding to the camera translation (velocity)
-        if self.velocity_embed_fn is not None:
-            velocity = rays_info['velocity'][img_idx]
-            velocity = (velocity - torch.min(velocity, dim=0)[0]) / torch.max(velocity, dim=0)[0]
-            velo = self.velocity_embed_fn(velocity)
-            velo = velo[:,None,:].expand(velo.shape[0], self.num_pt, velo.shape[-1])
-            x = torch.cat([x, velo], dim=-1)
 
         # apply embedding to the rays spatial, then get x, with shape [128,5,52]
         rays_x, rays_y = rays_info['rays_x'], rays_info['rays_y']
