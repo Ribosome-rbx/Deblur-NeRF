@@ -1,8 +1,8 @@
 num_gpu = 1
-expname = 0607_traj_deblur
-basedir = E:\3DVision\Deblur-NeRF\outputs_blur
-datadir = E:\3DVision\Deblur-NeRF\deblurnerf_dataset\real_camera_motion_blur\blurball
-tbdir = E:\3DVision\Deblur-NeRF\outputs_blur\logs
+expname = 0607_base_deblur
+basedir = Deblur-NeRF/outputs_blur
+datadir = Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
+tbdir = Deblur-NeRF/outputs_blur/logs
 dataset_type = deblur
 factor = 4
 llffhold = 7
@@ -31,8 +31,8 @@ kernel_random_mode = input
 kernel_img_embed = 35
 kernel_rand_embed = 2  # the in_embed
 kernel_spatial_embed = 2
-kernel_quater_embed = 2
-kernel_velocity_embed = 2
+kernel_quater_embed = 0
+kernel_velocity_embed = 0
 kernel_depth_embed = 0
 
 kernel_num_hidden = 4
