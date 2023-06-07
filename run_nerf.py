@@ -345,24 +345,42 @@ def train():
 
     # The DSK module
     if args.kernel_type == 'deformablesparsekernel':
-        kernelnet = DSKnet(len(images), torch.tensor(poses[:, :3, :4]),
-                           args.kernel_ptnum, args.kernel_hwindow,
-                           quaternion=torch.tensor(quaternion),
-                           velocity=torch.tensor(velocity),
-                           random_hwindow=args.kernel_random_hwindow, in_embed=args.kernel_rand_embed,
-                           random_mode=args.kernel_random_mode,
-                           img_embed=args.kernel_img_embed,
-                           spatial_embed=args.kernel_spatial_embed,
-                           quater_embed=args.kernel_quater_embed, 
-                           velocity_embed=args.kernel_velocity_embed,
-                           depth_embed=args.kernel_depth_embed,
-                           num_hidden=args.kernel_num_hidden,
-                           num_wide=args.kernel_num_wide,
-                           short_cut=args.kernel_shortcut,
-                           pattern_init_radius=args.kernel_pattern_init_radius,
-                           isglobal=args.kernel_isglobal,
-                           optim_trans=args.kernel_global_trans,
-                           optim_spatialvariant_trans=args.kernel_spatialvariant_trans)
+        if (args.kernel_quater_embed > 0):
+            kernelnet = DSKnet(len(images), torch.tensor(poses[:, :3, :4]),
+                            args.kernel_ptnum, args.kernel_hwindow,
+                            quaternion=torch.tensor(quaternion),
+                            velocity=torch.tensor(velocity),
+                            random_hwindow=args.kernel_random_hwindow, in_embed=args.kernel_rand_embed,
+                            random_mode=args.kernel_random_mode,
+                            img_embed=args.kernel_img_embed,
+                            spatial_embed=args.kernel_spatial_embed,
+                            quater_embed=args.kernel_quater_embed, 
+                            velocity_embed=args.kernel_velocity_embed,
+                            depth_embed=args.kernel_depth_embed,
+                            num_hidden=args.kernel_num_hidden,
+                            num_wide=args.kernel_num_wide,
+                            short_cut=args.kernel_shortcut,
+                            pattern_init_radius=args.kernel_pattern_init_radius,
+                            isglobal=args.kernel_isglobal,
+                            optim_trans=args.kernel_global_trans,
+                            optim_spatialvariant_trans=args.kernel_spatialvariant_trans)
+        else:
+            kernelnet = DSKnet(len(images), torch.tensor(poses[:, :3, :4]),
+                            args.kernel_ptnum, args.kernel_hwindow,
+                            random_hwindow=args.kernel_random_hwindow, in_embed=args.kernel_rand_embed,
+                            random_mode=args.kernel_random_mode,
+                            img_embed=args.kernel_img_embed,
+                            spatial_embed=args.kernel_spatial_embed,
+                            quater_embed=args.kernel_quater_embed, 
+                            velocity_embed=args.kernel_velocity_embed,
+                            depth_embed=args.kernel_depth_embed,
+                            num_hidden=args.kernel_num_hidden,
+                            num_wide=args.kernel_num_wide,
+                            short_cut=args.kernel_shortcut,
+                            pattern_init_radius=args.kernel_pattern_init_radius,
+                            isglobal=args.kernel_isglobal,
+                            optim_trans=args.kernel_global_trans,
+                            optim_spatialvariant_trans=args.kernel_spatialvariant_trans)
     elif args.kernel_type == 'none':
         kernelnet = None
     else:
