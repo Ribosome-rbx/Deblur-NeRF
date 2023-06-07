@@ -318,13 +318,12 @@ def spherify_poses(poses, bds):
 
 
 def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spherify=False, path_epi=False):
-    filter = [i for i in range(556,903)]
-    poses, bds, imgs = _load_data(basedir, factor=factor, filter=filter)  # factor=8 downsamples original imgs by 8x
+    poses, bds, imgs = _load_data(basedir, factor=factor)  # factor=8 downsamples original imgs by 8x
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
-    # poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1) # origional deblur: llff to Nerf
-    poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1) # colmap coor to Nerf, c2w
+    poses = np.concatenate([poses[:, 1:2, :], -poses[:, 0:1, :], poses[:, 2:, :]], 1) # origional deblur: llff to Nerf
+    # poses = np.concatenate([poses[:, 0:1, :], -poses[:, 1:2, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1) # colmap coor to Nerf, c2w
     # poses[:,3,:] = np.array([poses[0,3,:],-poses[1,3,:],-poses[2,3,:]])
     # backup strange rotation ##################
     # poses = np.concatenate([-poses[:, 1:2, :], -poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:, :]], 1)

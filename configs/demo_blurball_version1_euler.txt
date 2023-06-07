@@ -1,8 +1,8 @@
 num_gpu = 1
 expname = 0607_base_deblur
-basedir = Deblur-NeRF/outputs_blur
-datadir = Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
-tbdir = Deblur-NeRF/outputs_blur/logs
+basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
+tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur/logs
 dataset_type = deblur
 factor = 4
 llffhold = 7
