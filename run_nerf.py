@@ -108,8 +108,8 @@ def config_parser():
                         help='<float>, <<int#, such as<int5>>>, <fix>')
     parser.add_argument("--kernel_random_mode", type=str, default='input',
                         help='<input>, <output>')
-    parser.add_argument("--kernel_velocity_embed", type=int, default=0,
-                        help='the dim of velocity coordinate embedding')
+    parser.add_argument("--kernel_spatial_embed", type=int, default=0,
+                        help='the dim of spatial coordinate embedding')
     parser.add_argument("--kernel_depth_embed", type=int, default=0,
                         help='the dim of depth coordinate embedding')
     parser.add_argument("--kernel_hwindow", type=int, default=10,
@@ -220,11 +220,10 @@ def config_parser():
                         help='frequency of render_poses video saving')
     
     ################# trajectory embedding ######################
-    parser.add_argument("--kernel_spatial_embed", type=int, default=0,
-                        help='the dim of spatial coordinate embedding')
     parser.add_argument("--kernel_quater_embed", type=int, default=0,
                         help='the dim of quaternion coordinate embedding')
-
+    parser.add_argument("--kernel_velocity_embed", type=int, default=0,
+                        help='the dim of velocity coordinate embedding')
 
     return parser
 

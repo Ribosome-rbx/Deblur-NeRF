@@ -1,5 +1,5 @@
 num_gpu = 1
-expname = 0607_test
+expname = 0607_test_llff
 basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur
 datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/deblurnerf_dataset/real_camera_motion_blur/blurball
 tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/outputs_blur/logs
