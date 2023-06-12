@@ -1,7 +1,7 @@
 num_gpu = 1
 expname = poster_less
 basedir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs
-datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset/poster_less
+datadir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/dataset/poster
 tbdir = /cluster/project/infk/courses/252-0579-00L/group15/Deblur-NeRF/final_outputs/logs
 dataset_type = llff
 # factor = 1

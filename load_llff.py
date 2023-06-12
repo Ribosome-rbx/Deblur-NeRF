@@ -318,7 +318,8 @@ def spherify_poses(poses, bds):
 
 
 def load_llff_data(args, basedir, factor=8, recenter=True, bd_factor=.75, spherify=False, path_epi=False):
-    poses, bds, imgs = _load_data(basedir, factor=factor)  # factor=8 downsamples original imgs by 8x
+    filter = [i for i in range(0,40,3)]
+    poses, bds, imgs = _load_data(basedir, factor=factor, filter=filter)  # factor=8 downsamples original imgs by 8x
     print('Loaded', basedir, bds.min(), bds.max())
 
     # Correct rotation matrix ordering and move variable dim to axis 0
